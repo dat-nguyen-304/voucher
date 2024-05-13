@@ -1,9 +1,10 @@
 import express from 'express';
 import { AuthValidation } from '../middleware/validations/auth.validation';
 import { validateRequest } from '../middleware';
+import { AuthController } from '../controllers/auth.controller';
 
-const router = express.Router();
+export const authRouter = express.Router();
 
-router.post('/register', validateRequest(AuthValidation.registerUser), AuthController.registerUser);
+authRouter.post('/register', validateRequest(AuthValidation.registerUser), AuthController.registerUser);
 
-router.post('/login', validateRequest(AuthValidation.loginUser), AuthController.loginUser);
+authRouter.post('/login', validateRequest(AuthValidation.loginUser), AuthController.loginUser);

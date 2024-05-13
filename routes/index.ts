@@ -1,5 +1,7 @@
 import { Application, Request, Response } from 'express';
 import os from 'os';
+import { authRouter } from './auth.route';
+
 const routes = (app: Application) => {
     app.get('/', (req: Request, res: Response) => {
         res.status(200).json({
@@ -7,7 +9,7 @@ const routes = (app: Application) => {
             uptime: os.uptime()
         });
     });
-    // app.use('/account', accountRouter);
+    app.use('/api/auth', authRouter);
 };
 
 export default routes;

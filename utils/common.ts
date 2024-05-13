@@ -1,6 +1,10 @@
 import bcrypt from 'bcrypt';
-import { Response } from 'express';
+import { Response, RequestHandler } from 'express';
 import HttpStatus from 'http-status-codes';
+import { UnauthorizedError } from '../errors/error.response';
+import { ITokenPayload } from '../types/common.type';
+const JWT = require('jsonwebtoken');
+require('dotenv').config();
 
 interface ResponseData<T> {
     success: true;
@@ -33,4 +37,31 @@ export const hashPassword = async (str: string) => {
     const saltRounds = await bcrypt.genSalt(1);
     const hash = bcrypt.hash(str, saltRounds);
     return hash;
+};
+
+export const createTokenPair = async (payload: ITokenPayload) => {
+    try {
+        console.log({ key: process.env.PRIVATE_KEY });
+        const accessToken = await JWT.sign(payload, process.env.PRIVATE_KEY, {
+            expiresIn: '2 days'
+        });
+
+        const refreshToken = await JWT.sign(payload, process.env.PRIVATE_KEY, {
+            expiresIn: '7 days'
+        });
+
+        return { accessToken, refreshToken };
+    } catch (error) {
+        console.log({ error });
+    }
+};
+
+export const authenticate: RequestHandler = async (req, res, next) => {
+    const accessToken = req;
+    if (!accessToken) throw new UnauthorizedError('Need access token');
+
+    const decodedUser = JWT.verify(accessToken, process.env.PRIVATE_KEY);
+    // @ts-expect-error only intended to use in specific need
+    req.user = decodedUser;
+    return next();
 };

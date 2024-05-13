@@ -14,12 +14,13 @@ const StatusMessage = {
     CONFLICT: 'CONFLICT'
 };
 
-export class ErrorResponse {
+export class ErrorResponse extends Error {
     status: number;
-    message: string;
+
     constructor(message: string, status: number) {
-        this.message = message;
+        super(message);
         this.status = status;
+        Object.setPrototypeOf(this, ErrorResponse.prototype);
     }
 }
 

@@ -6,3 +6,9 @@ export interface IDocument {
     createdAt: Date;
     updatedAt: Date;
 }
+
+export interface ITokenPayload {
+    id: string;
+    username: string;
+    name: string;
+}

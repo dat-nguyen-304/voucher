@@ -2,6 +2,8 @@ import express from 'express';
 import compression from 'compression';
 import helmet from 'helmet';
 import globalErrorHandler from './middleware/globalErrorHandler';
+import routes from './routes';
+import './dbs/init.mongodb';
 
 const app = express();
 const PORT = 3000;
@@ -15,6 +17,7 @@ app.use(
     })
 );
 
+routes(app);
 app.use(globalErrorHandler);
 
 app.listen(PORT, () => {

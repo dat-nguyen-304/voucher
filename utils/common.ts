@@ -41,7 +41,6 @@ export const hashPassword = async (str: string) => {
 
 export const createTokenPair = async (payload: ITokenPayload) => {
     try {
-        console.log({ key: process.env.PRIVATE_KEY });
         const accessToken = await JWT.sign(payload, process.env.PRIVATE_KEY, {
             expiresIn: '2 days'
         });

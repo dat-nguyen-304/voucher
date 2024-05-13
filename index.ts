@@ -1,6 +1,7 @@
 import express from 'express';
 import compression from 'compression';
 import helmet from 'helmet';
+import globalErrorHandler from './middleware/globalErrorHandler';
 
 const app = express();
 const PORT = 3000;
@@ -13,6 +14,8 @@ app.use(
         extended: true
     })
 );
+
+app.use(globalErrorHandler);
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);

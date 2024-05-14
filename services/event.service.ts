@@ -3,6 +3,7 @@ import { Event, Voucher } from '../models';
 import { ICreateEventPayload } from '../types/event.type';
 import { BadRequestError, TransactionError, NotFoundError } from '../errors/error.response';
 import { commitWithRetry, initializeSession, runTransactionWithRetry } from '../utils/transaction';
+import myQueue from '../myQueue';
 
 const requestVoucher = async (eventId: string) => {
     const session = await initializeSession();
@@ -10,6 +11,7 @@ const requestVoucher = async (eventId: string) => {
         return await runTransactionWithRetry(() => issueVoucher(eventId, session), session);
     } catch (error) {
         await session.abortTransaction();
+        await myQueue.add('send-email', 'Transaction error');
         throw new TransactionError();
     } finally {
         session.endSession();
@@ -31,10 +33,12 @@ const issueVoucher = async (eventId: string, session: ClientSession) => {
 
     try {
         await commitWithRetry(session);
+        await myQueue.add('send-email', voucher[0]);
         return voucher;
     } catch (error) {
         await session.abortTransaction();
-        throw error;
+        await myQueue.add('send-email', 'Transaction error');
+        throw new TransactionError();
     }
 };
 

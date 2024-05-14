@@ -1,7 +1,5 @@
 import bcrypt from 'bcrypt';
-import { Response, RequestHandler } from 'express';
-import HttpStatus from 'http-status-codes';
-import { UnauthorizedError } from '../errors/error.response';
+import { Response } from 'express';
 import { ITokenPayload } from '../types/common.type';
 const JWT = require('jsonwebtoken');
 require('dotenv').config();
@@ -11,7 +9,6 @@ interface ResponseData<T> {
     statusCode: number;
     data: T;
     message: string;
-    responseStatus: string;
     errorMessages: [];
 }
 
@@ -21,10 +18,8 @@ export const sendSuccessResponse = <T>(
     statusCode: number = 200,
     message: string = 'Request processed successfully'
 ) => {
-    const statusCodeText = HttpStatus.getStatusText(statusCode);
     const responseData: ResponseData<T> = {
         data: data,
-        responseStatus: statusCodeText.toUpperCase().split(' ').join('_'),
         statusCode: statusCode,
         message,
         success: true,
@@ -53,14 +48,4 @@ export const createTokenPair = async (payload: ITokenPayload) => {
     } catch (error) {
         console.log({ error });
     }
-};
-
-export const authenticate: RequestHandler = async (req, res, next) => {
-    const accessToken = req;
-    if (!accessToken) throw new UnauthorizedError('Need access token');
-
-    const decodedUser = JWT.verify(accessToken, process.env.PRIVATE_KEY);
-    // @ts-expect-error only intended to use in specific need
-    req.user = decodedUser;
-    return next();
 };

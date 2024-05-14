@@ -1,5 +1,4 @@
 import { ErrorRequestHandler } from 'express';
-import HttpStatus from 'http-status-codes';
 import { Error as MongooseError } from 'mongoose';
 import { ZodError } from 'zod';
 import { IGenericErrorMessage } from '../types/error.type';
@@ -8,7 +7,6 @@ import handleMongooseError from '../errors/handleMongooseError';
 import handleZodError from '../errors/handleZodError';
 
 const globalErrorHandler: ErrorRequestHandler = (error, req, res, next) => {
-    console.log('Enter error', error);
     let statusCode = 500;
     let message = 'Something went wrong!';
     let errorMessages: IGenericErrorMessage[] = [];
@@ -35,13 +33,11 @@ const globalErrorHandler: ErrorRequestHandler = (error, req, res, next) => {
         errorMessages = error.message ? [{ path: '', message: error.message }] : [];
     }
 
-    const statusCodeText = HttpStatus.getStatusText(statusCode);
     res.status(statusCode).json({
         success: false,
         message,
         statusCode,
-        errorMessages,
-        responseStatus: statusCodeText.toUpperCase().split(' ').join('_')
+        errorMessages
     });
     next();
 };

@@ -1,52 +1,16 @@
-import { ClientSession } from 'mongoose';
+import mongoose, { ClientSession } from 'mongoose';
 import { Event, Voucher } from '../models';
 import { ICreateEventPayload } from '../types/event.type';
-import { BadRequestError, NotFoundError } from '../errors/error.response';
-
-const commitWithRetry = async (session: ClientSession) => {
-    try {
-        await session.commitTransaction();
-        console.log('Transaction committed.');
-    } catch (error) {
-        if (error instanceof Error && error.message === 'UnknownTransactionCommitResult') {
-            console.log('UnknownTransactionCommitResult, retrying commit operation ...');
-            await commitWithRetry(session);
-        } else {
-            console.log('Error during commit ...');
-            throw error;
-        }
-    }
-};
-
-const runTransactionWithRetry = async (txnFunc: () => Promise<any>, session: ClientSession) => {
-    try {
-        return await txnFunc();
-    } catch (error) {
-        console.log('Transaction aborted. Caught exception during transaction.');
-
-        // If transient error, retry the whole transaction
-        if (error instanceof Error && error.message === 'TransientTransactionError') {
-            console.log('TransientTransactionError, retrying transaction ...');
-            await runTransactionWithRetry(txnFunc, session);
-        } else {
-            throw error;
-        }
-    }
-};
+import { BadRequestError, TransactionError, NotFoundError } from '../errors/error.response';
+import { commitWithRetry, initializeSession, runTransactionWithRetry } from '../utils/transaction';
 
 const requestVoucher = async (eventId: string) => {
-    const session = await Event.startSession();
-    session.startTransaction({
-        readConcern: { level: 'snapshot' },
-        writeConcern: { w: 'majority' },
-        readPreference: 'primary'
-    });
-
+    const session = await initializeSession();
     try {
         return await runTransactionWithRetry(() => issueVoucher(eventId, session), session);
     } catch (error) {
         await session.abortTransaction();
-        throw error;
+        throw new TransactionError();
     } finally {
         session.endSession();
     }

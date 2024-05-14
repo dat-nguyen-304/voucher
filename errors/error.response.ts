@@ -53,3 +53,9 @@ export class ForbiddenError extends ErrorResponse {
         super(message, statusCode);
     }
 }
+
+export class TransactionError extends ErrorResponse {
+    constructor(message = 'Transaction error', statusCode = 456) {
+        super(message, statusCode);
+    }
+}

@@ -13,5 +13,6 @@ eventRouter.post(
 );
 
 eventRouter.post('/:eventId/editable/me', authenticate, EventController.handleEditRequest);
+eventRouter.post('/:eventId/editable/release', authenticate, EventController.handleReleaseEditRequest);
 
 eventRouter.post('/', validateRequest(EventValidation.createEvent), EventController.createEvent);

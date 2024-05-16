@@ -1,4 +1,4 @@
-import { ClientSession, Schema, Types } from 'mongoose';
+import { ClientSession, Types } from 'mongoose';
 import { Event, Voucher } from '../models';
 import { ICreateEventPayload } from '../types/event.type';
 import {
@@ -6,7 +6,8 @@ import {
     TransactionError,
     NotFoundError,
     EditEventError,
-    ErrorResponse
+    ErrorResponse,
+    UnauthorizedError
 } from '../errors/error.response';
 import { commitWithRetry, initializeSession, runTransactionWithRetry } from '../utils/transaction';
 import myQueue from '../myQueue';
@@ -105,4 +106,55 @@ const editRequest = async (userId: string, eventId: string, session: ClientSessi
     }
 };
 
-export const EventService = { handleRequestVoucher, createEvent, handleEditRequest };
+const handleReleaseEditRequest = async (user: ITokenPayload, eventId: string) => {
+    const session = await initializeSession();
+    try {
+        return await runTransactionWithRetry(() => releaseEditRequest(user.id, eventId, session), session);
+    } catch (error) {
+        await session.abortTransaction();
+        // await myQueue.add('send-email', 'Transaction error');
+        console.log(error);
+        if (error instanceof ErrorResponse) throw error;
+        else throw new TransactionError();
+    } finally {
+        session.endSession();
+    }
+};
+
+const releaseEditRequest = async (userId: string, eventId: string, session: ClientSession) => {
+    const event = await Event.findById(eventId).session(session);
+    if (!event) {
+        throw new NotFoundError('Event not found');
+    }
+
+    const now = new Date();
+
+    if (!event.editableBy || !event.editableUntil) throw new BadRequestError('This event is not edited by anyone now');
+
+    if (event.editableBy.toString() === userId) {
+        if (event.editableUntil <= now) {
+            event.editableBy = null;
+            event.editableUntil = null;
+            await event.save({ session });
+            throw new BadRequestError('This event already release by default');
+        }
+        event.editableBy = null;
+        event.editableUntil = null;
+        await event.save({ session });
+        await event.save({ session });
+    } else throw new UnauthorizedError('You do not have right to release this session');
+
+    try {
+        await commitWithRetry(session);
+        return {
+            message: 'Release successfully!'
+        };
+    } catch (error) {
+        await session.abortTransaction();
+        console.log(error);
+        if (error instanceof ErrorResponse) throw error;
+        else throw new TransactionError();
+    }
+};
+
+export const EventService = { handleRequestVoucher, createEvent, handleEditRequest, handleReleaseEditRequest };

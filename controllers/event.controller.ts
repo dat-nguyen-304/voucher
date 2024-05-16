@@ -25,7 +25,16 @@ const handleEditRequest: RequestHandler = async (req, res, next) => {
     try {
         // @ts-expect-error only intended to use in specific need
         const data = await EventService.handleEditRequest(req.user as IUser, req.params.eventId);
-        console.log({ data });
+        sendSuccessResponse(res, data, 200);
+    } catch (error) {
+        next(error);
+    }
+};
+
+const handleReleaseEditRequest: RequestHandler = async (req, res, next) => {
+    try {
+        // @ts-expect-error only intended to use in specific need
+        const data = await EventService.handleReleaseEditRequest(req.user as IUser, req.params.eventId);
         sendSuccessResponse(res, data, 200);
     } catch (error) {
         next(error);
@@ -35,5 +44,6 @@ const handleEditRequest: RequestHandler = async (req, res, next) => {
 export const EventController = {
     createEvent,
     handleRequestVoucher,
-    handleEditRequest
+    handleEditRequest,
+    handleReleaseEditRequest
 };

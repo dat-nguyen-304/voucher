@@ -41,9 +41,17 @@ const handleReleaseEditRequest: RequestHandler = async (req, res, next) => {
     }
 };
 
+const handleFindUserIsEditing: RequestHandler = async (req, res, next) => {
+    try {
+        const data = await EventService.handleFindUserIsEditing(req.params.eventId);
+        sendSuccessResponse(res, data, 200);
+    } catch (error) {}
+};
+
 export const EventController = {
     createEvent,
     handleRequestVoucher,
     handleEditRequest,
-    handleReleaseEditRequest
+    handleReleaseEditRequest,
+    handleFindUserIsEditing
 };

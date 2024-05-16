@@ -1,6 +1,6 @@
 import { ClientSession, Types } from 'mongoose';
 import { Event, Voucher } from '../models';
-import { ICreateEventPayload } from '../types/event.type';
+import { ICreateEventPayload, IEvent } from '../types/event.type';
 import {
     BadRequestError,
     TransactionError,
@@ -157,4 +157,47 @@ const releaseEditRequest = async (userId: string, eventId: string, session: Clie
     }
 };
 
-export const EventService = { handleRequestVoucher, createEvent, handleEditRequest, handleReleaseEditRequest };
+const handleFindUserIsEditing = async (eventId: string) => {
+    const session = await initializeSession();
+    try {
+        return await runTransactionWithRetry(() => findUserIsEditing(eventId, session), session);
+    } catch (error) {
+        await session.abortTransaction();
+        // await myQueue.add('send-email', 'Transaction error');
+        console.log(error);
+        if (error instanceof ErrorResponse) throw error;
+        else throw new TransactionError();
+    } finally {
+        session.endSession();
+    }
+};
+
+const findUserIsEditing = async (eventId: string, session: ClientSession) => {
+    const event = await Event.findById(eventId).populate<{ editableBy: Pick<IUser, 'name'> }>('editableBy', 'name');
+    if (!event) {
+        throw new NotFoundError('Event not found');
+    }
+    const now = new Date();
+    let message = '';
+    if (!event.editableBy || !event.editableUntil || event.editableUntil <= now)
+        message = 'This event is not edited by anyone now';
+    else message = `this event is editing by ${event.editableBy.name}`;
+
+    try {
+        await commitWithRetry(session);
+        return { message, expiredTime: event.editableUntil };
+    } catch (error) {
+        await session.abortTransaction();
+        console.log(error);
+        if (error instanceof ErrorResponse) throw error;
+        else throw new TransactionError();
+    }
+};
+
+export const EventService = {
+    handleRequestVoucher,
+    createEvent,
+    handleEditRequest,
+    handleReleaseEditRequest,
+    handleFindUserIsEditing
+};

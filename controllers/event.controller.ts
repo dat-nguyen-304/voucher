@@ -1,6 +1,7 @@
 import { RequestHandler } from 'express';
 import { sendSuccessResponse } from '../utils/common';
 import { EventService } from '../services/event.service';
+import { IUser } from '../types/user.type';
 
 const createEvent: RequestHandler = async (req, res, next) => {
     try {
@@ -11,10 +12,21 @@ const createEvent: RequestHandler = async (req, res, next) => {
     }
 };
 
-const requestVoucher: RequestHandler = async (req, res, next) => {
+const handleRequestVoucher: RequestHandler = async (req, res, next) => {
     try {
-        const data = await EventService.requestVoucher(req.params.eventId);
+        const data = await EventService.handleRequestVoucher(req.params.eventId);
         sendSuccessResponse(res, data, 201);
+    } catch (error) {
+        next(error);
+    }
+};
+
+const handleEditRequest: RequestHandler = async (req, res, next) => {
+    try {
+        // @ts-expect-error only intended to use in specific need
+        const data = await EventService.handleEditRequest(req.user as IUser, req.params.eventId);
+        console.log({ data });
+        sendSuccessResponse(res, data, 200);
     } catch (error) {
         next(error);
     }
@@ -22,5 +34,6 @@ const requestVoucher: RequestHandler = async (req, res, next) => {
 
 export const EventController = {
     createEvent,
-    requestVoucher
+    handleRequestVoucher,
+    handleEditRequest
 };

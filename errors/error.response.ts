@@ -59,3 +59,9 @@ export class TransactionError extends ErrorResponse {
         super(message, statusCode);
     }
 }
+
+export class EditEventError extends ErrorResponse {
+    constructor(message = 'Edit event error', statusCode = 409) {
+        super(message, statusCode);
+    }
+}

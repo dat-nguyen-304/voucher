@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 import { IEvent, eventModel } from '../types/event.type';
 
 const eventSchema = new mongoose.Schema<IEvent>(
@@ -11,7 +11,9 @@ const eventSchema = new mongoose.Schema<IEvent>(
             type: Number,
             required: true,
             default: 0
-        }
+        },
+        editableBy: { type: Schema.Types.ObjectId, ref: 'User', default: null },
+        editableUntil: { type: Date, default: null }
     },
     {
         timestamps: true

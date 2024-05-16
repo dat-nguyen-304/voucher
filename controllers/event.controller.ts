@@ -48,10 +48,21 @@ const handleFindUserIsEditing: RequestHandler = async (req, res, next) => {
     } catch (error) {}
 };
 
+const handleEditSomething: RequestHandler = async (req, res, next) => {
+    try {
+        // @ts-expect-error only intended to use in specific need
+        const data = await EventService.handleEditSomething(req.user as IUser, req.params.eventId);
+        sendSuccessResponse(res, data, 200);
+    } catch (error) {
+        next(error);
+    }
+};
+
 export const EventController = {
     createEvent,
     handleRequestVoucher,
     handleEditRequest,
     handleReleaseEditRequest,
-    handleFindUserIsEditing
+    handleFindUserIsEditing,
+    handleEditSomething
 };

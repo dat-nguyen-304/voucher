@@ -15,5 +15,6 @@ eventRouter.post(
 eventRouter.post('/:eventId/editable/me', authenticate, EventController.handleEditRequest);
 eventRouter.post('/:eventId/editable/release', authenticate, EventController.handleReleaseEditRequest);
 eventRouter.post('/:eventId/editable/maintain', EventController.handleFindUserIsEditing);
+eventRouter.post('/:eventId/edit', authenticate, EventController.handleEditSomething);
 
 eventRouter.post('/', validateRequest(EventValidation.createEvent), EventController.createEvent);

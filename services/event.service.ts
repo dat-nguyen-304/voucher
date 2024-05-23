@@ -10,9 +10,10 @@ import {
   UnauthorizedError
 } from '../errors/error.response';
 import { commitWithRetry, initializeSession, runTransactionWithRetry } from '../utils/transaction';
-import myQueue from '../myQueue';
 import { IUser } from '../types/user.type';
 import { ITokenPayload } from '../types/common.type';
+// import createQueue from '../myQueue';
+import myQueue from '../myQueue';
 
 const handleRequestVoucher = async (eventId: string) => {
   const session = await initializeSession();
@@ -43,7 +44,8 @@ const issueVoucher = async (eventId: string, session: ClientSession) => {
 
   try {
     await commitWithRetry(session);
-    // await myQueue.add('send-email', voucher[0]);
+    // const myQueue = createQueue();
+    await myQueue.add('send-email', voucher[0]);
     return voucher;
   } catch (error) {
     await session.abortTransaction();

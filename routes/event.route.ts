@@ -7,9 +7,9 @@ import { authenticate } from '../middleware/authenticate';
 export const eventRouter = express.Router();
 
 eventRouter.post(
-    '/:eventId/request-voucher',
-    validateRequest(EventValidation.requestVoucher),
-    EventController.handleRequestVoucher
+  '/:eventId/request-voucher',
+  validateRequest(EventValidation.requestVoucher),
+  EventController.handleRequestVoucher
 );
 
 eventRouter.post('/:eventId/editable/me', authenticate, EventController.handleEditRequest);

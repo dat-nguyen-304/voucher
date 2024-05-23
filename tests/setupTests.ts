@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import myQueue from '../myQueue';
 
 const setup = async () => {
   mongoose
@@ -10,6 +11,7 @@ const setup = async () => {
 const teardown = async () => {
   // await mongoose.connection.dropDatabase();
   await mongoose.connection.close();
+  await myQueue.close();
 };
 
 export { setup, teardown };

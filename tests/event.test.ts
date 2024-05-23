@@ -5,6 +5,8 @@ const JWT = require('jsonwebtoken');
 import routes from '../routes';
 import globalErrorHandler from '../middleware/globalErrorHandler';
 import { Event, User } from '../models';
+import myQueue from '../myQueue';
+// import createQueue from '../myQueue';
 require('dotenv').config();
 export const app = express();
 
@@ -30,7 +32,7 @@ describe('Events API', () => {
   beforeAll(async () => {
     // Add test data to the database
     await Event.create([
-      { name: 'Event 1', maxQuantity: 50 },
+      { name: 'Event 1', maxQuantity: 1 },
       { name: 'Event 2', maxQuantity: 100 }
     ]);
     await User.create([{ username: 'user_1', password: '1', name: 'User 1' }]);
@@ -84,6 +86,11 @@ describe('Events API', () => {
           expiresIn: '2 days'
         }
       );
+    });
+
+    it('Prevent issuing voucher if reaching max number', async () => {
+      await request(app).post(`/api/event/${eventId}/request-voucher`).expect(201);
+      await request(app).post(`/api/event/${eventId}/request-voucher`).expect(400);
     });
 
     it('Register editing an event', async () => {
